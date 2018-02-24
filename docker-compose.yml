@@ -1,0 +1,37 @@
+version: "3"
+
+volumes:
+  public:
+  media:
+  sqlite:
+
+services:
+  redis:
+    image: redis:latest
+    expose:
+      - "6379"
+  backend:
+    build:
+      context: ./docker/backend
+    image: backend:latest
+    ports:
+      - "8000:8000"
+    env_file: .env
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend:/usr/src/app
+      - public:/usr/src/app/public
+      - media:/usr/src/app/media
+      - sqlite:/usr/src/app/sqlite
+    entrypoint: ./run.sh
+  celery:
+    image: backend
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend:/usr/src/app
+    command: celery -A backend.tasks worker --loglevel=info
+
