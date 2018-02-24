@@ -3,10 +3,29 @@
 
 {% block html_body %}
     <h1>Загрузка и парсинг текстовых файлов</h1>
-    <form action="{{ form.action }}" enctype="multipart/form-data">
+    <form id="upload-form" method="post" action="{{ form.action }}" enctype="multipart/form-data" class="upload">
+        {% csrf_token %}
         <div class="fields">
             {{ form.as_p }}
             <p><button type="submit">Загрузить</button></p>
         </div>
+        <div class="progress upload-progress" style="display: none;">
+            <p>Загрузка файла</p>
+            <progress id="upload-progress" max="100" value="1">Загружено на <span class="value">1</span>%</progress>
+        </div>
     </form>
+    <div class="parsing" style="display: none">
+        <div class="progress parsing-progress">
+            <p>Парсинг файла</p>
+            <progress id="parsing-progress" max="100" value="1">Загружено на <span class="value">1</span>%</progress>
+        </div>
+        <div class="result"></div>
+    </div>
 {% endblock %}
+
+
+{% block scripts %}{% verbatim %}<script>
+jQuery(function ($) {
+
+});
+</script>{% endverbatim %}{% endblock %}

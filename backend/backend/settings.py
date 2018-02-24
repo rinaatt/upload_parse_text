@@ -117,12 +117,36 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-public = root.path('public')
-
-STATIC_ROOT = public('static')
+STATICFILES_DIRS = [
+    root('backend', 'static'),
+]
+STATIC_ROOT = root('public', 'static')
 if not op.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 STATIC_URL = '/static/'
 
 MEDIA_ROOT = root('media')
 MEDIA_URL = '/media/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'custom': {
+            'format': '[%(name)s %(levelname)s] %(message)s'
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'custom',
+        },
+    },
+    'loggers': {
+        'app': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}

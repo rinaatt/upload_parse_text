@@ -1,7 +1,6 @@
 version: "3"
 
 volumes:
-  public:
   media:
   sqlite:
 
@@ -20,7 +19,6 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./backend:/usr/src/app
-      - public:/usr/src/app/public
       - media:/usr/src/app/media
       - sqlite:/usr/src/app/sqlite
     entrypoint: ./run.sh
