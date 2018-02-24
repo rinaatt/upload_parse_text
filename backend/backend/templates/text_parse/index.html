@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 
 
-{% block body %}
-    <h1>Hello World!</h1>
+{% block html_body %}
+    <h1>Загрузка и парсинг текстовых файлов</h1>
+    <form action="{{ form.action }}" enctype="multipart/form-data">
+        <div class="fields">
+            {{ form.as_p }}
+            <p><button type="submit">Загрузить</button></p>
+        </div>
+    </form>
 {% endblock %}

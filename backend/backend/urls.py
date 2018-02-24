@@ -17,5 +17,5 @@ from django.conf.urls import url, include
 from text_parse.views import IndexView
 
 urlpatterns = [
-    url(r'^text-parse/', IndexView.as_view()),
+    url(r'^text-parse/', IndexView.as_view(), name='text_parse_index'),
 ]
