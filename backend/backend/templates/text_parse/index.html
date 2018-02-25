@@ -19,13 +19,13 @@
     <h1>Загрузка и парсинг текстовых файлов</h1>
     <form id="upload-form" method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="upload">
         {% csrf_token %}
-        <div class="fields">
+        <div id="upload-field" class="fields">
             <input type="file" id="select-file" accept="text/plain" style="display: none"/>
             <button type="button" id="submit-file">Выбрать и загрузить</button>
         </div>
-        <div class="progress upload-progress">
+        <div id="upload-progress" class="progress upload-progress">
             <p>Загрузка файла</p>
-            <progress id="upload-progress" max="100" value="0">Загружено на <span class="value">1</span>%</progress>
+            <progress max="100" value="0">Загружено на <span class="value">1</span>%</progress>
         </div>
     </form>
     <div class="parsing">
@@ -39,53 +39,49 @@
 
 
 {% block scripts %}{% verbatim %}<script>
-(function ($) {
-    var csrfToken = $.cookie('csrftoken');
-    console.debug('csrfToken = %s', csrfToken);
-
-    function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-    $.ajaxSetup({
-        beforeSend: function(xhr, settings) {
-            console.debug('Attempt set X-CSRFToken');
-            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                xhr.setRequestHeader("X-CSRFToken", csrfToken);
-            }
-        }
-    });
-})(jQuery);
-
 jQuery(function ($) {
+    "use strict";
 
-    var $uploadForm = $('#upload-form');
     var $selectFile = $('#select-file');
     var $submitFile = $('#submit-file');
 
-    function upload (name, data) {
-        console.debug(name);
-        $('.fields', $uploadForm).hide();
-        $('.progress', $uploadForm).show();
+    function uploadFile(file, url) {
         var $uploadProgress = $('#upload-progress');
-        var jqxhr = $.ajax({
-            url: $uploadForm.attr('action'),
+        var $uploadField = $('#upload-field');
+        var formData = new window.FormData();
+        formData.append('file', file);
+        $uploadField.hide();
+        var jqXHR = $.ajax({
+            url: url,
             method: 'POST',
-            data: {data: data, name: name},
+            contentType: false,
+            data: formData,
+            processData: false,
             dataType: 'json',
+            cache: false,
             xhr: function () {
-                var xhr = new XMLHttpRequest();
-                xhr.upload.addEventListener('progress', function (e) {
-                    if (e.lengthComputable) {
-                        var percentage = Math.round((e.loaded * 100) / e.total);
-                        console.debug('percentage = %d', percentage);
-                        $uploadProgress.attr('value', percentage);
-                        $uploadProgress.find('.value').text(percentage);
+                var xhr = new window.XMLHttpRequest();
+                var $progressIndicator = $uploadProgress.find('progress');
+                xhr.upload.addEventListener('loadstart', function (ev) {
+                    $uploadProgress.show();
+                }, false);
+                xhr.upload.addEventListener('progress', function (ev) {
+                    if (ev.lengthComputable) {
+                        var percentage = Math.round((ev.loaded * 100) / ev.total);
+                        $progressIndicator.attr('value', percentage);
+                        $progressIndicator.find('.value').text(percentage);
                     }
+                }, false);
+                xhr.upload.addEventListener('loadend', function (ev) {
+                    $uploadProgress.hide();
                 }, false);
                 return xhr;
             }
         });
+        jqXHR.always(function () {
+            $uploadField.show();
+        });
+        return jqXHR;
     }
 
     $submitFile.on('click', function (evt) {
@@ -94,11 +90,12 @@ jQuery(function ($) {
     $selectFile.on('change', function (evt) {
         var file = evt.target.files[0];
         if (file) {
-            var reader = new FileReader();
-            reader.readAsText(file, 'utf-8');
-            reader.onload = function (evt) {
-                upload(file.name, evt.target.result);
-            };
+            uploadFile(file, $('#upload-form').attr('action')).done(
+                function (data, textStatus) {
+                    console.info(textStatus);
+                    console.debug(data);
+                }
+            );
         }
     });
 });
