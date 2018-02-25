@@ -1,16 +1,18 @@
 import logging
-from django.views.generic import TemplateView, FormView
-from .forms import UploadForm
+from django.views.generic import TemplateView, View
+from django.http.response import JsonResponse
 
 log = logging.getLogger('app.text_parse')
 
 
-class IndexView(FormView):
-    form_class = UploadForm
+class IndexView(TemplateView):
     template_name = 'text_parse/index.html'
-    success_url = '/text-parse/'
 
-    def form_valid(self, form):
-        file = form.cleaned_data['file']
-        log.debug('Get file with length: %s', len(file.read()))
-        return super().form_valid(form)
+
+class UploadView(View):
+
+    def post(self, request, *args, **kwargs):
+        file_data = request.POST['data']
+        file_name = request.POST['name']
+        log.debug('Get file with length: %s', len(file_data))
+        return JsonResponse({'result': 'OK'})

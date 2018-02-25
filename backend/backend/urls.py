@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
-from text_parse.views import IndexView
+from text_parse.views import IndexView, UploadView
 
 urlpatterns = [
-    url(r'^text-parse/', IndexView.as_view(), name='text_parse_index'),
+    url(r'^$', IndexView.as_view(), name='index'),
+    url(r'^upload/$', UploadView.as_view(), name='upload')
 ]

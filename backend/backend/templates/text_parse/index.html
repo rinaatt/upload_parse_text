@@ -1,23 +1,37 @@
 {% extends 'base.html' %}
 
+{% block html_head %}
+    <style>
+        .progress {
+            display: none;
+        }
+        .progress progress {
+            width: 500px;
+        }
+        .parsing {
+            display: none;
+        }
+    </style>
+{% endblock %}
+
 
 {% block html_body %}
     <h1>Загрузка и парсинг текстовых файлов</h1>
-    <form id="upload-form" method="post" action="{{ form.action }}" enctype="multipart/form-data" class="upload">
+    <form id="upload-form" method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="upload">
         {% csrf_token %}
         <div class="fields">
-            {{ form.as_p }}
-            <p><button type="submit">Загрузить</button></p>
+            <input type="file" id="select-file" accept="text/plain" style="display: none"/>
+            <button type="button" id="submit-file">Выбрать и загрузить</button>
         </div>
-        <div class="progress upload-progress" style="display: none;">
+        <div class="progress upload-progress">
             <p>Загрузка файла</p>
-            <progress id="upload-progress" max="100" value="1">Загружено на <span class="value">1</span>%</progress>
+            <progress id="upload-progress" max="100" value="0">Загружено на <span class="value">1</span>%</progress>
         </div>
     </form>
-    <div class="parsing" style="display: none">
+    <div class="parsing">
         <div class="progress parsing-progress">
             <p>Парсинг файла</p>
-            <progress id="parsing-progress" max="100" value="1">Загружено на <span class="value">1</span>%</progress>
+            <progress id="parsing-progress" max="100" value="0">Загружено на <span class="value">1</span>%</progress>
         </div>
         <div class="result"></div>
     </div>
@@ -25,7 +39,67 @@
 
 
 {% block scripts %}{% verbatim %}<script>
+(function ($) {
+    var csrfToken = $.cookie('csrftoken');
+    console.debug('csrfToken = %s', csrfToken);
+
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            console.debug('Attempt set X-CSRFToken');
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrfToken);
+            }
+        }
+    });
+})(jQuery);
+
 jQuery(function ($) {
 
+    var $uploadForm = $('#upload-form');
+    var $selectFile = $('#select-file');
+    var $submitFile = $('#submit-file');
+
+    function upload (name, data) {
+        console.debug(name);
+        $('.fields', $uploadForm).hide();
+        $('.progress', $uploadForm).show();
+        var $uploadProgress = $('#upload-progress');
+        var jqxhr = $.ajax({
+            url: $uploadForm.attr('action'),
+            method: 'POST',
+            data: {data: data, name: name},
+            dataType: 'json',
+            xhr: function () {
+                var xhr = new XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function (e) {
+                    if (e.lengthComputable) {
+                        var percentage = Math.round((e.loaded * 100) / e.total);
+                        console.debug('percentage = %d', percentage);
+                        $uploadProgress.attr('value', percentage);
+                        $uploadProgress.find('.value').text(percentage);
+                    }
+                }, false);
+                return xhr;
+            }
+        });
+    }
+
+    $submitFile.on('click', function (evt) {
+        $selectFile.trigger('click');
+    });
+    $selectFile.on('change', function (evt) {
+        var file = evt.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.readAsText(file, 'utf-8');
+            reader.onload = function (evt) {
+                upload(file.name, evt.target.result);
+            };
+        }
+    });
 });
 </script>{% endverbatim %}{% endblock %}
