@@ -1,7 +1,7 @@
 version: "3"
 
 volumes:
-  media:
+  upload:
   sqlite:
 
 services:
@@ -15,11 +15,12 @@ services:
     image: backend:latest
     ports:
       - "8000:8000"
-    env_file: .env
+    env_file:
+      - .env
     working_dir: /usr/src/app
     volumes:
       - ./backend:/usr/src/app
-      - media:/usr/src/app/media
+      - upload:/usr/src/app/upload
       - sqlite:/usr/src/app/sqlite
     entrypoint: ./run.sh
   celery:
@@ -28,8 +29,11 @@ services:
       - redis
     links:
       - redis:redis
+    env_file:
+      - .env
     working_dir: /usr/src/app
     volumes:
       - ./backend:/usr/src/app
-    command: celery -A backend.tasks worker --loglevel=info
+      - upload:/usr/src/app/upload
+    command: celery -A backend.celery_app worker --loglevel=info
 

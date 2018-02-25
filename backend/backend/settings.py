@@ -83,6 +83,8 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     'default': env.db('DATABASE_URL')
 }
+REDIS_URL = env('REDIS_URL')
+CELERY_BROKER_URL = env('CELERY_BROKER')
 
 # CACHES = {
 #     'default': env.cache('REDIS_URL'),
@@ -125,8 +127,7 @@ if not op.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = root('media')
-MEDIA_URL = '/media/'
+FILE_UPLOAD_TEMP_DIR = root('upload')
 
 LOGGING = {
     'version': 1,
