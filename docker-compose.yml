@@ -12,7 +12,6 @@ services:
   backend:
     build:
       context: ./docker/backend
-    image: backend:latest
     ports:
       - "8000:8000"
     env_file:
@@ -22,11 +21,15 @@ services:
       - ./backend:/usr/src/app
       - upload:/usr/src/app/upload
       - sqlite:/usr/src/app/sqlite
-    entrypoint: ./run.sh
-  celery:
-    image: backend
     depends_on:
       - redis
+    entrypoint: ./run.sh
+  celery:
+    build:
+      context: ./docker/backend
+    depends_on:
+      - redis
+      - backend
     links:
       - redis:redis
     env_file:
