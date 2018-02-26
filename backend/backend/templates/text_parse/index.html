@@ -17,24 +17,17 @@
 
 {% block html_body %}
     <h1>Загрузка и парсинг текстовых файлов</h1>
-    <form id="upload-form" method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="upload">
+    <form id="upload-form" method="post" action="{% url 'xhr' 'upload' %}" enctype="multipart/form-data" class="upload">
         {% csrf_token %}
         <div id="upload-field" class="fields">
             <input type="file" id="select-file" accept="text/plain" style="display: none"/>
             <button type="button" id="submit-file">Выбрать и загрузить</button>
         </div>
-        <div id="upload-progress" class="progress upload-progress">
+        <div id="upload-progress" class="progress">
             <p>Загрузка файла</p>
             <progress max="100" value="0">Загружено на <span class="value">1</span>%</progress>
         </div>
     </form>
-    <div class="parsing">
-        <div class="progress parsing-progress">
-            <p>Парсинг файла</p>
-            <progress id="parsing-progress" max="100" value="0">Загружено на <span class="value">1</span>%</progress>
-        </div>
-        <div class="result"></div>
-    </div>
 {% endblock %}
 
 
@@ -94,6 +87,7 @@ jQuery(function ($) {
                 function (data, textStatus) {
                     console.info(textStatus);
                     console.debug(data);
+                    window.location.assign(data['next'])
                 }
             );
         }

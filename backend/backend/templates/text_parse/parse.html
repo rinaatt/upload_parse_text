@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block html_head %}
+    <meta name="XhrResultsUrl" content="{% url 'xhr' 'parse_results' %}"/>
+    <meta name="ResultHash" content="{{ hash }}"/>
+    <style>
+        .progress progress {
+            width: 500px;
+        }
+        .result > table {
+            {#border: 1px solid#}
+        }
+        .result > table th, .result > table td {
+            padding: 4px 10px;
+            border-bottom: 1px solid;
+        }
+        .result > table > thead {
+            text-align: center;
+        }
+        .result > table > tbody th {
+            text-align: right;
+        }
+    </style>
+{% endblock %}
+
+
+{% block html_body %}
+    <h1>Парсинг текстовых файлов</h1>
+    <div class="parsing">
+        {% if not result.done  %}
+            <div id="parsing-progress" class="progress">
+                <h3>Парсинг файла</h3>
+                <progress max="100" value="{{ result.parsed_percentage }}">Загружено на <span class="value">{{ result.parsed_percentage }}</span>%</progress>
+            </div>
+        {% endif %}
+        <div class="result">
+            <h3>Результаты: <q>{{ result.file_name }}</q></h3>
+            <p><a href="{% url 'index' %}">Распарсить другой файл</a>.</p>
+            <table>
+                <thead>
+                    <tr><th>Тип символа</th><th>Количество</th></tr>
+                </thead>
+                <tbody>
+                    <tr><th>Цифровые</th><td id="result-digits">{{ result.digits }}</td></tr>
+                    <tr><th>Пробельные</th><td id="result-whitespaces">{{ result.whitespaces }}</td></tr>
+                    <tr><th>Пунктуация</th><td id="result-punctuation">{{ result.punctuation }}</td></tr>
+                    <tr><th>Буквы (и другие)</th><td id="result-characters">{{ result.characters }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}{% verbatim %}<script>
+function getMetaContent(name) {
+    var metaTag = document.getElementsByTagName('meta')[name];
+    return metaTag.content;
+}
+
+jQuery(function ($) {
+    "use strict";
+
+    var RESULTS_URL = getMetaContent('XhrResultsUrl');
+    var timeoutID = null;
+
+    function ProgressIndicator(selector) {
+        var $indicator = $(selector);
+
+        function setValue(val) {
+            $indicator.attr('value', val);
+            $indicator.find('.value').text(val);
+        }
+
+        return {
+            notify: function (val) {
+                if ($indicator.is(':visible')) {
+                    setValue(val);
+                }
+            },
+            hide: function () {
+                $indicator.closest('.progress').hide().remove();
+            }
+        }
+    }
+
+    var indicator = new ProgressIndicator('#parsing-progress > progress');
+
+    var updateState = function () {
+        var defer = $.Deferred();
+        function getResults() {
+            $.get(RESULTS_URL,  {'hash': getMetaContent('ResultHash')}).done(function (result) {
+                if (!result) {
+                    defer.reject();
+                }
+                indicator.notify(result['parsed_percentage']);
+                $('#result-digits').text(result['digits']);
+                $('#result-whitespaces').text(result['whitespaces']);
+                $('#result-punctuation').text(result['punctuation']);
+                $('#result-characters').text(result['characters']);
+                if (result['done']) {
+                    indicator.hide();
+                    defer.resolve();
+                } else {
+                    timeoutID = setTimeout(getResults, 1000);
+                }
+            }).fail(function () {
+                defer.reject();
+            });
+        }
+        timeoutID = setTimeout(getResults, 1000);
+        return defer.promise();
+    };
+    if ($('#parsing-progress').length) {
+        updateState().always(function () {
+           clearTimeout(timeoutID);
+        });
+    }
+});
+</script>{% endverbatim %}{% endblock %}

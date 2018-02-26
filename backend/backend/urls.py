@@ -13,11 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, include
-from text_parse.views import IndexView, UploadView, ParseView
+from django.urls import include, path, re_path
+from text_parse.views import IndexView, XhrView, ParseView
 
 urlpatterns = [
-    url(r'^$', IndexView.as_view(), name='index'),
-    url(r'^upload/$', UploadView.as_view(), name='upload'),
-    url(r'^parse-file-([\da-f]{32})/$', ParseView.as_view(), name='parse'),
+    path('', IndexView.as_view(), name='index'),
+    path('parse/<str:hash>/', ParseView.as_view(), name='parse'),
+    path('xhr/<action_name>/', XhrView.as_view(), name='xhr'),
 ]

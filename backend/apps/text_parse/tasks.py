@@ -2,11 +2,19 @@ from os import fstat, unlink
 import time
 import string
 import redis
+import json
 from django.conf import settings
 from backend.celery_app import app
 from celery.utils.log import get_task_logger
 
 log = get_task_logger(__name__)
+PARSE_SLEEP = settings.PARSE_SLEEP or 0
+
+r = redis.Redis.from_url(settings.REDIS_URL)
+
+
+def save_to_redis(name, value):
+    r.set(name, json.dumps(value))
 
 
 @app.task
@@ -17,12 +25,12 @@ def parse_file(file_path, file_name, redis_name):
         'file_name': file_name,
         'parsed_percentage': 0,
         'digits': 0,
-        'charachters': 0,
+        'characters': 0,
         'whitespaces': 0,
-        'punctuation': 0
+        'punctuation': 0,
+        'done': False,
     }
-    r = redis.Redis.from_url(settings.REDIS_URL)
-    r.hmset(redis_name, result)
+    save_to_redis(redis_name, result)
     file = open(file_path, 'r')
     stat_result = fstat(file.fileno())
     size = stat_result.st_size
@@ -36,12 +44,14 @@ def parse_file(file_path, file_name, redis_name):
             elif symbol in string.whitespace:
                 result['whitespaces'] += 1
             else:
-                result['charachters'] += 1
+                result['characters'] += 1
             result['parsed_percentage'] = round((float(file.tell()) * 100) / size)
-            r.hmset(redis_name, result)
+            save_to_redis(redis_name, result)
             if size <= file.tell():
                 break
-            time.sleep(0.1)
+            time.sleep(PARSE_SLEEP)
     finally:
+        result['done'] = True
+        save_to_redis(redis_name, result)
         file.close()
         unlink(file_path)
