@@ -8,9 +8,6 @@
         .progress progress {
             width: 500px;
         }
-        .parsing {
-            display: none;
-        }
     </style>
 {% endblock %}
 
@@ -42,6 +39,7 @@ jQuery(function ($) {
         var $uploadProgress = $('#upload-progress');
         var $uploadField = $('#upload-field');
         var formData = new window.FormData();
+        $uploadProgress.show();
         formData.append('file', file);
         $uploadField.hide();
         var jqXHR = $.ajax({
@@ -55,18 +53,12 @@ jQuery(function ($) {
             xhr: function () {
                 var xhr = new window.XMLHttpRequest();
                 var $progressIndicator = $uploadProgress.find('progress');
-                xhr.upload.addEventListener('loadstart', function (ev) {
-                    $uploadProgress.show();
-                }, false);
                 xhr.upload.addEventListener('progress', function (ev) {
                     if (ev.lengthComputable) {
                         var percentage = Math.round((ev.loaded * 100) / ev.total);
                         $progressIndicator.attr('value', percentage);
                         $progressIndicator.find('.value').text(percentage);
                     }
-                }, false);
-                xhr.upload.addEventListener('loadend', function (ev) {
-                    $uploadProgress.hide();
                 }, false);
                 return xhr;
             }

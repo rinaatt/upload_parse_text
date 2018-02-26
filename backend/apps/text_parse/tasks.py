@@ -8,7 +8,7 @@ from backend.celery_app import app
 from celery.utils.log import get_task_logger
 
 log = get_task_logger(__name__)
-PARSE_SLEEP = settings.PARSE_SLEEP or 0
+PARSE_SLEEP = getattr(settings, 'PARSE_SLEEP', 0)
 
 r = redis.Redis.from_url(settings.REDIS_URL)
 

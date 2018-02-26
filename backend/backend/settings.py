@@ -128,7 +128,7 @@ if not op.exists(STATIC_ROOT):
 STATIC_URL = '/static/'
 
 UPLOAD_DIR = root('upload')
-PARSE_SLEEP = 0.01
+# PARSE_SLEEP = 0.01
 
 LOGGING = {
     'version': 1,
