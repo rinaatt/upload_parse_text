@@ -127,7 +127,7 @@ if not op.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 STATIC_URL = '/static/'
 
-FILE_UPLOAD_TEMP_DIR = root('upload')
+UPLOAD_DIR = root('upload')
 
 LOGGING = {
     'version': 1,
