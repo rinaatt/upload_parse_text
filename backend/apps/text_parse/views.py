@@ -57,6 +57,7 @@ class XhrView(View):
         parse_file.delay(dest_path, file.name, redis_name)
         return {
             'result': 'OK',
+            'result_hash': hs,
             'next': reverse('parse', kwargs={'hash': hs}),
         }
 

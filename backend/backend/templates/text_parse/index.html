@@ -63,9 +63,7 @@ jQuery(function ($) {
                 return xhr;
             }
         });
-        jqXHR.always(function () {
-            $uploadField.show();
-        });
+        jqXHR.always(function () { $uploadField.show(); });
         return jqXHR;
     }
 

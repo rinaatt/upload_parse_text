@@ -30,7 +30,7 @@
         {% if not result.done  %}
             <div id="parsing-progress" class="progress">
                 <h3>Парсинг файла</h3>
-                <progress max="100" value="{{ result.parsed_percentage }}">Загружено на <span class="value">{{ result.parsed_percentage }}</span>%</progress>
+                <progress max="100" value="{{ result.parsed_percentage }}">Распарсено на <span class="value">{{ result.parsed_percentage }}</span>%</progress>
             </div>
         {% endif %}
         <div class="result">

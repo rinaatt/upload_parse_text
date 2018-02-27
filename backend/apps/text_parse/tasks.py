@@ -1,4 +1,4 @@
-from os import fstat, unlink
+from os import fstat, unlink, stat
 import time
 import string
 import redis
@@ -31,9 +31,8 @@ def parse_file(file_path, file_name, redis_name):
         'done': False,
     }
     save_to_redis(redis_name, result)
+    stat_result = stat(file_path)
     file = open(file_path, 'r')
-    stat_result = fstat(file.fileno())
-    size = stat_result.st_size
     try:
         while True:
             symbol = file.read(1)
@@ -45,9 +44,14 @@ def parse_file(file_path, file_name, redis_name):
                 result['whitespaces'] += 1
             else:
                 result['characters'] += 1
-            result['parsed_percentage'] = round((float(file.tell()) * 100) / size)
+            if stat_result.st_size > 0:
+                result['parsed_percentage'] = round(
+                    (float(file.tell()) * 100) / stat_result.st_size
+                )
+            else:
+                result['parsed_percentage'] = 100
             save_to_redis(redis_name, result)
-            if size <= file.tell():
+            if file.tell() >= stat_result.st_size:
                 break
             time.sleep(PARSE_SLEEP)
     finally:
