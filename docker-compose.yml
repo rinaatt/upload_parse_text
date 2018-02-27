@@ -9,6 +9,20 @@ services:
     image: redis:latest
     expose:
       - "6379"
+  celery:
+    build:
+      context: ./docker/backend
+    depends_on:
+      - redis
+    links:
+      - redis:redis
+    env_file:
+      - .env
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend:/usr/src/app
+      - upload:/usr/src/app/upload
+    command: celery -A backend.celery_app worker --loglevel=info
   backend:
     build:
       context: ./docker/backend
@@ -23,20 +37,5 @@ services:
       - sqlite:/usr/src/app/sqlite
     depends_on:
       - redis
-    entrypoint: ./run.sh
-  celery:
-    build:
-      context: ./docker/backend
-    depends_on:
-      - redis
-      - backend
-    links:
-      - redis:redis
-    env_file:
-      - .env
-    working_dir: /usr/src/app
-    volumes:
-      - ./backend:/usr/src/app
-      - upload:/usr/src/app/upload
-    command: celery -A backend.celery_app worker --loglevel=info
-
+      - celery
+    command: ./run.sh

@@ -27,10 +27,12 @@ FAKE_FILE_RESULT = {
 class ViewTests(TestCase):
 
     def test_index(self):
+        time.sleep(1)
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
 
     def test_upload(self):
+        time.sleep(1)
         response = self.client.post(
             reverse('xhr', kwargs={'action_name': 'upload'}),
             data={'file': FAKE_FILE},
@@ -45,6 +47,7 @@ class ViewTests(TestCase):
         self.assertContains(response, FAKE_FILE.name)
 
     def test_parse(self):
+        time.sleep(1)
         response = self.client.post(
             reverse('xhr', kwargs={'action_name': 'upload'}),
             data={'file': FAKE_FILE},
