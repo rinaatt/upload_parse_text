@@ -6,6 +6,7 @@ import os.path as op
 from django.conf import settings
 from django.urls import reverse
 from django.views.generic import TemplateView, View
+from django.shortcuts import redirect
 from django.http.response import (
     JsonResponse,
     HttpResponseForbidden,
@@ -28,7 +29,9 @@ def get_redis_name(hs):
 def get_parse_results(hs):
     redis_name = get_redis_name(hs)
     values = r.get(redis_name)
-    return json.loads(values)
+    if values:
+        return json.loads(values)
+    return {}
 
 
 class XhrView(View):
@@ -62,10 +65,10 @@ class XhrView(View):
         }
 
     def parse_results(self, request):
-        hash = request.GET.get('hash', '')
-        if not hash:
+        result_hash = request.GET.get('hash', '')
+        if not result_hash:
             return {}
-        return get_parse_results(hash)
+        return get_parse_results(result_hash)
 
 
 class IndexView(TemplateView):
@@ -75,9 +78,9 @@ class IndexView(TemplateView):
 class ParseView(TemplateView):
     template_name = 'text_parse/parse.html'
 
-    def get_context_data(self, **kwargs):
-        kwargs.update(super().get_context_data(**kwargs))
-        hs = kwargs.get('hash', None)
-        if hs:
-            kwargs['result'] = get_parse_results(hs)
-        return kwargs
+    def get(self, request, *args, **kwargs):
+        result = get_parse_results(kwargs.get('hash'))
+        if not result:
+            return redirect(reverse('index'))
+        kwargs['result'] = result
+        return super().get(request, *args, **kwargs)

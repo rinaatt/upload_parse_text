@@ -90,7 +90,7 @@ jQuery(function ($) {
         var defer = $.Deferred();
         function getResults() {
             $.get(RESULTS_URL,  {'hash': getMetaContent('ResultHash')}).done(function (result) {
-                if (!result) {
+                if (!result['file_name']) {
                     defer.reject();
                 }
                 indicator.notify(result['parsed_percentage']);
