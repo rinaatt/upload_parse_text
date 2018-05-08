@@ -1,39 +1,50 @@
-version: "3"
+version: "3.6"
 
 volumes:
   upload:
   sqlite:
 
 services:
+
   redis:
     image: redis:latest
     expose:
       - "6379"
+
+  base_app:
+    build: ./docker/_base
+    image: base:1.0
+
   backend:
-    build:
-      context: ./docker/backend
-    image: backend:latest
+    build: ./docker/backend
+    image: backend:1.0
     ports:
       - "8000:8000"
     env_file:
       - .env
-    working_dir: /usr/src/app
+    working_dir: /var/app
     volumes:
-      - ./backend:/usr/src/app
-      - upload:/usr/src/app/upload
-      - sqlite:/usr/src/app/sqlite
-    entrypoint: ./run.sh
+      - ./backend:/var/app
+      - upload:/var/app/upload
+      - sqlite:/var/sqlite
+    command:
+      - "runserver"
+      - "0.0.0.0:8000"
+
   celery:
-    image: backend
+    build: ./docker/celery
+    image: celery:1.0
     depends_on:
       - redis
     links:
       - redis:redis
     env_file:
       - .env
-    working_dir: /usr/src/app
+    working_dir: /var/app
     volumes:
-      - ./backend:/usr/src/app
-      - upload:/usr/src/app/upload
-    command: celery -A backend.celery_app worker --loglevel=info
+      - ./backend:/var/app
+      - upload:/var/app/upload
+    command:
+      - "worker"
+      - "--loglevel=info"
 
