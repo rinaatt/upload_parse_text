@@ -14,17 +14,18 @@
 
 Для запуска проекта необходим docker и docker-compose
 
-Запуск:
+Запуск (остановить можно через Ctrl+C):
 ```
 docker-compose up
 ```
 
-Остановка:
+Удаление контейнеров, сети, томов:
 ```
-docker-compose down
+docker-compose down -v
 ```
 
 Запуск тестов:
 ```
-docker-compose run backend ./run_tests.sh
+docker-compose run backend test text_parse
 ```
+Также существует файл `run_tests.sh` в корне, который делает тоже самое.
