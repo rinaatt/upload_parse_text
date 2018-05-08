@@ -8,33 +8,23 @@
         .progress progress {
             width: 500px;
         }
-        .parsing {
-            display: none;
-        }
     </style>
 {% endblock %}
 
 
 {% block html_body %}
     <h1>Загрузка и парсинг текстовых файлов</h1>
-    <form id="upload-form" method="post" action="{% url 'upload' %}" enctype="multipart/form-data" class="upload">
+    <form id="upload-form" method="post" action="{% url 'xhr' 'upload' %}" enctype="multipart/form-data" class="upload">
         {% csrf_token %}
         <div id="upload-field" class="fields">
             <input type="file" id="select-file" accept="text/plain" style="display: none"/>
             <button type="button" id="submit-file">Выбрать и загрузить</button>
         </div>
-        <div id="upload-progress" class="progress upload-progress">
+        <div id="upload-progress" class="progress">
             <p>Загрузка файла</p>
             <progress max="100" value="0">Загружено на <span class="value">1</span>%</progress>
         </div>
     </form>
-    <div class="parsing">
-        <div class="progress parsing-progress">
-            <p>Парсинг файла</p>
-            <progress id="parsing-progress" max="100" value="0">Загружено на <span class="value">1</span>%</progress>
-        </div>
-        <div class="result"></div>
-    </div>
 {% endblock %}
 
 
@@ -49,6 +39,7 @@ jQuery(function ($) {
         var $uploadProgress = $('#upload-progress');
         var $uploadField = $('#upload-field');
         var formData = new window.FormData();
+        $uploadProgress.show();
         formData.append('file', file);
         $uploadField.hide();
         var jqXHR = $.ajax({
@@ -62,9 +53,6 @@ jQuery(function ($) {
             xhr: function () {
                 var xhr = new window.XMLHttpRequest();
                 var $progressIndicator = $uploadProgress.find('progress');
-                xhr.upload.addEventListener('loadstart', function (ev) {
-                    $uploadProgress.show();
-                }, false);
                 xhr.upload.addEventListener('progress', function (ev) {
                     if (ev.lengthComputable) {
                         var percentage = Math.round((ev.loaded * 100) / ev.total);
@@ -72,15 +60,10 @@ jQuery(function ($) {
                         $progressIndicator.find('.value').text(percentage);
                     }
                 }, false);
-                xhr.upload.addEventListener('loadend', function (ev) {
-                    $uploadProgress.hide();
-                }, false);
                 return xhr;
             }
         });
-        jqXHR.always(function () {
-            $uploadField.show();
-        });
+        jqXHR.always(function () { $uploadField.show(); });
         return jqXHR;
     }
 
@@ -94,6 +77,7 @@ jQuery(function ($) {
                 function (data, textStatus) {
                     console.info(textStatus);
                     console.debug(data);
+                    window.location.assign(data['next'])
                 }
             );
         }
